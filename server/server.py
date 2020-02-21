@@ -50,19 +50,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         f = open(filetoSend, 'rb')
                         l = f.read(1024)
                         while (l):
-                            conn.send(l)
+                            conn.sendall(l)
                             # print('Sent ', repr(l))
                             l = f.read(1024)
-                        conn.send("EOF".encode())
-                        f.close()
+                        conn.sendall("EOF".encode())
                         # removes file from server
-                        os.remove(filetoSend[1])
-                        # have a delay for seding the file and removing the file
-                        time.sleep(2)
+                        os.remove(filetoSend)
+                        f.close()
                     else:
                         print("File", str(filetoSend),
                               " doesnt exist on server.")
-                        conn.send("1".encode())
+                        message = "File doesn't exist on server."
+                        # Does not exist
+                        conn.sendall("DNEIS".encode())
 
                 elif (recvWord == "STORE"):
                     print("Client asked for Store.")
@@ -71,21 +71,21 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     f = open(recvCommand[1], 'wb')
 
                     while (True):
-                    # receive data and write it to file
+                        # receive data and write it to file
                         data = conn.recv(1024)
                         print("Server receiving data...")
                         print('data=%s', (data))
                         if not data:
                             break
-                        #EOF sigals that the whole file has been retrieved
+                        # EOF sigals that the whole file has been retrieved
                         if data.decode()[-3:] == "EOF":
-                           rawFile = data.decode()
-                           ClippedFile = rawFile[:-3]
-                           data = ClippedFile.encode()
-                           f.write(data)
-                           f.close()
-                          
-                           break
+                            rawFile = data.decode()
+                            ClippedFile = rawFile[:-3]
+                            data = ClippedFile.encode()
+                            f.write(data)
+                            f.close()
+
+                            break
 
                 elif (recvWord == "QUIT"):
                     print("Client asked for Quit.")

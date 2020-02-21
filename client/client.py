@@ -17,6 +17,7 @@ getStatement = None
 quitProg = None
 connect = 0
 failedToConnect = True
+DNE = 0
 
 
 def getInput():
@@ -92,39 +93,42 @@ while(True):
                     elif (getStatement[0] == "RETRIEVE"):
                         if (len(getStatement) == 2):
                             s.sendall(getCommand.encode())
-                            FileRequested = getStatement[1]  # make a string?
-
-                            # wb indicates that the file is opened for writing in binary mode.
-                            f = open(FileRequested, 'wb')
-                            print("File requested is: ", f)
-                            print("File recieved is: ", s.recv(1024))
-                            # see if file is in server
-                            if (s.recv(1024) != "1"):
+                            FileRequested = str(getStatement[1])
+                            print("File requested is: ", FileRequested)
+                            while (True):
                                 print('receiving data...')
                                 data = s.recv(1024)
-                                print("data: ", data)
-                                # if not data:
-                                #    break
-                                # write data to file
-                                f.write(data)
-                                f.close()
-                            else:
-                                print("Server has no such file.")
+                                # check if file exists
+                                if (data.decode() != "DNEIS"):
+                                    f = open(FileRequested, 'wb')
+                                    if data.decode()[-3:] == "EOF":
+                                        rawFile = data.decode()
+                                        ClippedFile = rawFile[:-3]
+                                        data = ClippedFile.encode()
+                                        f.write(data)
+                                        f.close()
+                                else:
+                                    print("\nFile doesnt exist.")
+                                break
                         else:
                             print("Retrieve command is: RETRIEVE <filename>")
 
                     elif (getStatement[0] == "STORE"):
                         if (len(getStatement) == 2):
-                            s.sendall(getCommand.encode())
-                            f = open(getStatement[1], 'rb')
-                            l = f.read(1024)
-                            while(l):
-                                s.sendall(l)
-                                l = f.read(1042)
-                            s.sendall("EOF".encode())
-                            f.close()
-                            print(" File stored by server.")
-                            os.remove(getStatement[1])
+                            # check that file is in client
+                            if (os.path.exists(getStatement[1])):
+                                s.sendall(getCommand.encode())
+                                f = open(getStatement[1], 'rb')
+                                l = f.read(1024)
+                                while(l):
+                                    s.sendall(l)
+                                    l = f.read(1042)
+                                s.sendall("EOF".encode())
+                                f.close()
+                                print(" File stored by server.")
+                                os.remove(getStatement[1])
+                            else:
+                                print("File doesnt exist in client.")
                         else:
                             print("Store command is: STORE <fileName>")
                     else:
