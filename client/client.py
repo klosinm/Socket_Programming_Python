@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
-# msg.encode() //change to bytes
-# msg.decode() //puts rerp(data.decode())
 
 import socket
 import os  # for listen command
 import argparse
 
-
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65432        # The port used by the server
-
 print("Client has been boosted up.")
-
 getCommand = None
 getStatement = None
 quitProg = None
@@ -35,20 +28,16 @@ def getInput():
     # For commands such as Connect, retrieve, and store that has
     # more than one worded command
     getStatement = getCommand.split(" ")
-    # print("Client asked for: ", getCommand)
 
 
 getInput()
 
 while(True):
-
-    # CLOSE CONNECTION
+    # INITAL CLOSE CONNECTION
     if (getCommand == "QUIT"):
         break  # disconect from sever
     elif (getStatement[0] == "CONNECT" and len(getStatement) == 3):
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-
             # Server Address converted to it
             SP = int(getStatement[2])
             # Check if input is CONNECT <IP ADDRESS> <Int>
@@ -58,26 +47,20 @@ while(True):
                     s.settimeout(5)
                     s.connect((getStatement[1], SP))
                     print("Connecting...")
-
                 except:
                     failedToConnect = True
                     print("Failed to connect.")
                     getInput()
-
                 if(not failedToConnect):
                     print("Successfully Connected!")
-
                 while (not failedToConnect):
-
                     getInput()
-
                     if (getCommand == "QUIT"):
                         s.sendall(getCommand.encode())
                         s.shutdown(socket.SHUT_RDWR)
                         s.close()
                         print("Client was disconnected.")
                         exit()
-
                     elif (getCommand == "LIST"):
                         # change command to bytes
                         s.sendall(getCommand.encode())
@@ -89,7 +72,6 @@ while(True):
                         for f in files:
                             print("  + ", f)
                         print("\n")
-
                     elif (getStatement[0] == "RETRIEVE"):
                         if (len(getStatement) == 2):
                             s.sendall(getCommand.encode())
@@ -112,7 +94,6 @@ while(True):
                                 break
                         else:
                             print("Retrieve command is: RETRIEVE <filename>")
-
                     elif (getStatement[0] == "STORE"):
                         if (len(getStatement) == 2):
                             # check that file is in client
@@ -133,8 +114,6 @@ while(True):
                             print("Store command is: STORE <fileName>")
                     else:
                         print("invalid statement.")
-
     else:
         getInput()
-
 print("Client was disconnected.")
