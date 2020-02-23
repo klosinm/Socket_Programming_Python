@@ -49,7 +49,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     else:
                         print("File", str(filetoSend),
                               " doesnt exist on server.")
-                        message = "File doesn't exist on server."
                         # Does not exist
                         conn.sendall("DNEIS".encode())
                 elif (recvWord == "STORE"):
@@ -60,7 +59,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         # receive data and write it to file
                         data = conn.recv(1024)
                         print("Server receiving data...")
-                        print('data=%s', (data))
+                        #print('data=%s', (data))
                         if not data:
                             break
                         # EOF sigals that the whole file has been retrieved
