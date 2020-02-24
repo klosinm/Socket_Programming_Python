@@ -61,9 +61,11 @@ Here we List files from the server on the client side. (Since these were taken o
 <br/>
 </p>
 
+
 Issues With List: </br>
-We had to figure out how to use os.walk and os.listdir in order to get all of the files in the current directory. We figured it out by reading up on these two functions.
-It was difficult figuring out how to send the data containing the list of available files over to the client’s side of the connection. This required trial and error learning how sockets pass information to each other. Once we were able to figure this out, it made the later commands much easier to implement. </br>
+We had to figure out how to use os.walk and os.listdir in order to get all of the files in the current directory. We figured it out by reading up on these two functions.</br>
+It was difficult figuring out how to send the data containing the list of available files over to the client’s side of the connection. This required trial and error learning how sockets pass information to each other. We were able to find articles that described in detail the different operations sockets could perform and how to properly implement them. Once we were able to figure this out, it made the later commands much easier to implement.</br>
+
 
 
 ## STORE: </br>
