@@ -10,35 +10,34 @@ from tkinter import simpledialog
 
 import emoji
 
-# number of users in chatroom
+#number of users in chatroom
 numUsers = 0
 
 ##############
 # Server
 ##############
 
-
 class Server(threading.Thread):
     def __init__(self, host, port):
-        # holds the connections of server to client
+        #holds the connections of server to client
         self.connections = []
         self.host = "127.0.0.1"
         self.port = 1060
         super().__init__()
 
     def run(self):
-        # attempt to connect socket and port
+        #attempt to connect socket and port
         serverSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serverSock.bind(("127.0.0.1", 1060))
         serverSock.listen(1)
-        # announce in terminal what we are listening on
+        #announce in terminal what we are listening on
         print('Connected on:', serverSock.getsockname())
-        # attempt to connect user(s) to server
+        #attempt to connect user(s) to server
         while True:
             sc, sockname = serverSock.accept()
             print('user connects from {} to {}'.format(
                 sc.getpeername(), sc.getsockname()))
-            # new thread
+            #new thread
             server_socket = ServerSocket(sc, sockname, self)
             server_socket.start()
             # Add thread to  connections
@@ -46,18 +45,18 @@ class Server(threading.Thread):
             print('Server gets messages from user from:', sc.getpeername())
 
     def messageSend(self, message, source):
-        # sends all other users usernames message
+        #sends all other users usernames message
         for connection in self.connections:
             if connection.sockname != source:
                 connection.send(message)
 
     def remove_connection(self, connection):
-        # remove connnnection from server socket
+        #remove connnnection from server socket
         self.connections.remove(connection)
 
 
 class ServerSocket(threading.Thread):
-    # support socket connection
+    #support socket connection
     def __init__(self, sc, sockname, server):
         self.sc = sc
         self.sockname = sockname
@@ -65,25 +64,24 @@ class ServerSocket(threading.Thread):
         super().__init__()
 
     def run(self):
-        # return user message
+        #return user message
         while True:
             message = self.sc.recv(1024).decode('ascii')
             if message:
-                # send users message
+                #send users message
                 self.server.messageSend(message, self.sockname)
             else:
                 self.sc.close()
-                # server.remove_connection(self)
+                #server.remove_connection(self)
                 return
 
     def send(self, message):
-        # Send user message to server.
+        #Send user message to server.
         self.sc.sendall(message.encode('ascii'))
 
 ##############
 # Client
 ##############
-
 
 class Send(threading.Thread):
     def __init__(self, socket, name):
@@ -93,31 +91,31 @@ class Send(threading.Thread):
 
 
 class ClientRecieve(threading.Thread):
-    # get threads from server
+    #get threads from server
     def __init__(self, socket, name):
-
-        print("98 socket: " + str(socket))
-        print("99 name: " + str(name))
+        super().__init__()
         self.socket = socket
         self.username = name
         self.messages = None
-        super().__init__()
 
     def run(self):
-        # gets messages from server and displays on GUI and terminal
-        while True:
-            message = self.socket.recv(1024).decode('ascii')
-            # check message is valid
-            if message:
-                if self.messages:
-                    print('\r{}\n{}: '.format(message, self.name), end='')
-                    self.messages.insert(tk.END, (message))
+        #gets messages from server and displays on GUI
+        message = self.socket.recv(1024).decode('ascii')
+        print("line 104: " + message)
+        #check message is valid
+        if message:
+            if self.messages:
+                self.messages.insert(tk.END, (message))
+                print("line 109: " + message)
+        else:
+            print("ISSUE")
 
-# GUI support for client and server
+
+#GUI support for client and server
 
 
 class ChatroomGUI:
-    # get ports/hosts
+    #get ports/hosts
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -125,46 +123,47 @@ class ChatroomGUI:
         self.username = None
         self.messages = None
 
-    # Starting up the client server connection
+    #Starting up the client server connection
     def start(self):
-        # Connect host and port
+        #Connect host and port
         print("Connecting to " + str(self.host) + ":" + str(self.port))
         self.socket.connect((self.host, self.port))
         print(emoji.emojize("Success! :thumbs_up:"))
 
-        # Get name from user
+        #Get name from user
         self.username = simpledialog.askstring(
             "Input", "What is your name?", parent=tk.Tk())
 
-        # threads
+        #threads
         send = Send(self.socket, self.username)
         receive = ClientRecieve(self.socket, self.username)
-        # start thread connections
+        #start thread connections
         send.start()
         receive.start()
 
-        # announce that another user joined chatroom
-        self.socket.sendall("{} has joined. Hello!".format(
+        #announce that another user joined chatroom
+        self.socket.sendall("{} has joined. Say hi!".format(
             self.username).encode("ascii"))
         print("\rNote: you can leave the chatroom by typing 'q'!\n")
         return receive
 
     def send(self, msgTextBox):
-        # message from user written in textbox in GUI
+        #message from user written in textbox in GUI
         message = msgTextBox.get()
-        # remove message from textbox after user hits send
+        #remove message from textbox after user hits send
         msgTextBox.delete(0, tk.END)
-        # place message (if valid, meaning there is a message) in gui box
+        #place message (if valid, meaning there is a message) in gui box
+        print("156 message: " + message)
         if len(message) > 0:
             self.messages.insert(tk.END, "{}: {}".format(
                 self.username, (message)))
 
         # quit classroom: user must type "q"
         if message == "q":
-            # send to socket that user is leaving chat
+            #send to socket that user is leaving chat
             self.socket.sendall("{} has left the chat.".format(
                 self.username).encode("ascii"))
-            # close socket
+            #close socket
             self.socket.close()
             os._exit(0)
         else:
@@ -173,20 +172,20 @@ class ChatroomGUI:
 
 
 def main(host, port):
-    # GUI of program
+    #GUI of program
     client = ChatroomGUI(host, port)
     receive = client.start()
 
-    # Create window for gui
+    #Create window for gui
     window = tk.Tk()
 
-    # dimensions of window
+    #dimensions of window
     window.geometry("300x200")
 
-    # Title
+    #Title
     window.title("Socket Server Chatroom")
 
-    # Box of TEXT messages
+    #Box of TEXT messages
     MsgBox = tk.Frame(master=window)
     messages = tk.Listbox(master=MsgBox)
     messages.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
@@ -194,16 +193,16 @@ def main(host, port):
     receive.messages = messages
     MsgBox.grid(row=0, column=3)
 
-    # Textbox for input
+    #Textbox for input
     colOne = tk.Frame(master=window)
-    # accept single-line text strings from a user.
+    #accept single-line text strings from a user.
     msgTextBox = tk.Entry(master=colOne)
     msgTextBox.pack(side=tk.RIGHT, expand=True)
-    # input of text message
+    #input of text message
     msgTextBox.bind("<Return>", lambda x: client.send(msgTextBox))
     colOne.grid(row=6, column=3)
 
-    # Send button
+    #Send button
     sendMsgButton = tk.Button(
         master=window,
         text="Send",
@@ -212,27 +211,25 @@ def main(host, port):
     )
     sendMsgButton.grid(row=6, column=1)
 
-    # deploy
+    #deploy
     window.mainloop()
 
 
-# start up program
+#start up program
 if __name__ == '__main__':
 
-    # get input from user(s)
+    #get input from user(s)
+
     hosting = simpledialog.askstring(
         "Input", "Create Host connection? (yes/no)", parent=tk.Tk())
-    # start up server on socket 127.0.0.1 and port 1060
+    #start up server on socket 127.0.0.1 and port 1060
     if (hosting == "yes" or hosting == "Yes" or hosting == "y"):
-        (Server("127.0.0.1", int(1060))).start()
+         (Server("127.0.0.1", int(1060))).start()
 
     socketValue = simpledialog.askstring(
         "Input", "Type socket value:", parent=tk.Tk())
     portValue = simpledialog.askstring(
         "Input", "Type port value:", parent=tk.Tk())
-    # start main with users given socket and port values
-
-    # right now user input does not matter, port and socket will always be the same
-
+    #start main with users given socket and port values
     #main((socketValue), int(portValue))
     main("127.0.0.1", int(1060))
